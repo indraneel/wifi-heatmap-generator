@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<body>
+<input type="file" id="imgUpload" accept="image/*">
+<div style="position:relative; display:inline-block;">
+  <img id="floorplan" style="max-width:800px; display:none;">
+  <canvas id="canvas" style="position:absolute; top:0; left:0;"></canvas>
+</div>
+<script>
+let canvas = document.getElementById('canvas')
+let ctx = canvas.getContext('2d')
+let img = document.getElementById('floorplan')
+let points = []
+
+document.getElementById('imgUpload').addEventListener('change', e => {
+  let file = e.target.files[0]
+  let reader = new FileReader()
+  reader.onload = () => {
+    img.src = reader.result
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      img.style.display='block'
+    }
+  }
+  reader.readAsDataURL(file)
+})
+
+canvas.addEventListener('click', e => {
+  let rect = canvas.getBoundingClientRect()
+  let x = e.clientX - rect.left
+  let y = e.clientY - rect.top
+  fetch('/signal')
+    .then(r=>r.json())
+    .then(data => {
+      if (!data.rssi) return
+      points.push({x,y,rssi:data.rssi})
+      drawPoints()
+    })
+})
+
+function drawPoints() {
+  ctx.clearRect(0,0,canvas.width,canvas.height)
+  for (let p of points) {
+    let intensity = Math.max(Math.min((p.rssi+90),30),0)
+    let colorVal = 255 - intensity*8
+    ctx.beginPath()
+    ctx.arc(p.x,p.y,10,0,Math.PI*2)
+    ctx.fillStyle = `rgb(${colorVal},${50},${50})`
+    ctx.fill()
+  }
+}
+</script>
+
+<!-- Add this block somewhere in your index.html body after the canvas -->
+<canvas id="legend" width="200" height="50" style="border:1px solid #000;"></canvas>
+<script>
+let legend = document.getElementById('legend')
+let lgctx = legend.getContext('2d')
+let grad = lgctx.createLinearGradient(0,0,200,0)
+for (let i=0;i<=30;i++){
+  let colorVal = 255 - i*8
+  grad.addColorStop(i/30, `rgb(${colorVal},50,50)`)
+}
+lgctx.fillStyle=grad
+lgctx.fillRect(0,0,200,20)
+lgctx.fillStyle='#000'
+lgctx.font='12px sans-serif'
+lgctx.fillText('Weak (-90dBm)',0,35)
+lgctx.fillText('Strong (-60dBm)',110,35)
+</script>
+
+</body>
+</html>
+
+
