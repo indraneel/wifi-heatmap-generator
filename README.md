@@ -1,4 +1,4 @@
-# WiFi Heatmapper
+# wifi heatmap generator 
 
 [heatmap](/heatmap.png)
 
