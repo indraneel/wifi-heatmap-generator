@@ -1,4 +1,4 @@
-# WiFi Heatmapper
+# wifi heatmap generator 
 
 A web-based tool for creating WiFi signal strength heatmaps on floor plans. Upload an image of your floor plan and click points to measure and visualize WiFi signal strength across different locations.
 
